@@ -1,0 +1,16 @@
+{
+  "name": "royalty-high",
+  "version": "1.0.0",
+  "description": "Royalty High — A Game of Crowns and Strategies (replica)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "socket.io": "^4.7.5"
+  }
+}
