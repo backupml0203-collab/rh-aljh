@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Royalty High</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body class="on-menu">
+
+<div class="menu-deco menu-deco-1">♔</div>
+<div class="menu-deco menu-deco-2">♕</div>
+<div class="menu-deco menu-deco-3">♖</div>
+<div class="menu-deco menu-deco-4">♗</div>
+
+<!-- ============ MENU ============ -->
+<div id="menu">
+  <div class="crown">♛</div>
+  <div class="title">ROYALTY HIGH</div>
+  <div class="subtitle">A Game of Crowns and Strategies</div>
+  <div class="crests">⚔ ♕ ♔ ♕ ⚔</div>
+  <button id="resume-banner" onclick="resumeGame()" style="display:none;">
+    <span class="resume-banner-icon">▶</span>
+    <span class="resume-banner-text">
+      <span class="resume-banner-title">Resume your game</span>
+      <span class="resume-banner-sub">vs <span id="resume-banner-opp"></span> — pick up right where you left off</span>
+    </span>
+  </button>
+  <div class="menu-btns">
+    <button class="btn btn-coming" disabled>Play Online <span class="coming-soon">Coming Soon</span></button>
+    <button class="btn btn-primary" onclick="showFriendsModeScreen()">Play With Friends</button>
+    <button class="btn btn-secondary" onclick="showSpectateScreen()">Spectate</button>
+    <button class="btn btn-imperial" onclick="showLeaderboard()">Leaderboard</button>
+  </div>
+  <button class="btn btn-secondary btn-how-to-play" onclick="showHelp()">How to Play</button>
+  <div id="account-area">
+    <div id="account-logged-out" style="display:none;">
+      <button class="btn-link" onclick="openAuth('login')">Log in</button>
+      <span class="account-sep">·</span>
+      <button class="btn-link" onclick="openAuth('signup')">Sign up</button>
+    </div>
+    <div id="account-logged-in" style="display:none;">
+      <span class="account-greeting">♛ <span id="account-name"></span></span>
+      <div>
+        <button class="btn-link" onclick="showStats()">My stats</button>
+        <span class="account-sep">·</span>
+        <button class="btn-link" onclick="openUserSettings()">Settings</button>
+        <span class="account-sep">·</span>
+        <button class="btn-link" id="account-admin-link" style="display:none;" onclick="showAdmin()">All players</button>
+        <span class="account-sep" id="account-admin-sep" style="display:none;">·</span>
+        <button class="btn-link" onclick="doLogout()">Log out</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ PLAY WITH FRIENDS ============ -->
+<div id="friends-mode-screen" class="room-screen">
+  <div class="room-box">
+    <h2>Play With Friends</h2>
+    <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:20px;">
+      <button class="btn btn-primary" style="padding:12px;font-size:1rem;" onclick="showRoomScreen()">Create / Join Room</button>
+      <button class="btn btn-gold" style="padding:12px;font-size:1rem;" onclick="showChallengeScreen()">Direct Challenge</button>
+    </div>
+    <button class="btn btn-secondary btn-sm" onclick="backToMenu()">Back</button>
+  </div>
+</div>
+
+<!-- ============ CREATE / JOIN ROOM ============ -->
+<div id="room-screen" class="room-screen">
+  <div class="room-box">
+    <h2>Create / Join Room</h2>
+    <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:20px;">
+      <button class="btn btn-primary" style="padding:12px;font-size:1rem;" onclick="createRoom()">Create Room</button>
+      <div class="game-options">
+        <button class="opt-toggle" id="opt-no-scoring" onclick="toggleOpt('no_scoring')">No Scoring</button>
+        <button class="opt-toggle" id="opt-reveal-attacked" onclick="toggleOpt('reveal_attacked')">Reveal Attacked</button>
+        <button class="opt-toggle" id="opt-time-limit" onclick="toggleTimeLimit()">Time Limit</button>
+        <button class="opt-toggle" id="opt-no-spectators" onclick="toggleOpt('no_spectators')">No Spectators</button>
+      </div>
+      <div id="time-limit-slider" style="display:none;">
+        <input type="range" id="tl-range" min="15" max="120" step="5" value="30" oninput="setTimeLimit(this.value)">
+        <div class="tl-label"><span id="time-limit-value">30s</span> per turn</div>
+      </div>
+      <div style="opacity:0.35;font-size:0.7rem;">Options apply to rooms you create</div>
+      <div style="opacity:0.4;font-size:0.8rem;text-transform:uppercase;letter-spacing:2px;">or enter a room code</div>
+      <input class="room-input" id="join-code-input" placeholder="CODE" maxlength="4" onkeydown="if(event.key==='Enter')joinRoom()">
+      <button class="btn btn-gold" style="padding:10px;font-size:0.9rem;" onclick="joinRoom()">Join</button>
+      <div class="room-error" id="join-error"></div>
+    </div>
+    <button class="btn btn-secondary btn-sm" onclick="showFriendsModeScreen()">Back</button>
+  </div>
+</div>
+
+<!-- ============ DIRECT CHALLENGE ============ -->
+<div id="challenge-screen" class="room-screen">
+  <div class="room-box">
+    <h2>Direct Challenge</h2>
+    <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:20px;">
+      <div class="game-options">
+        <button class="opt-toggle" id="chal-opt-no-scoring" onclick="toggleChallengeOpt('no_scoring')">No Scoring</button>
+        <button class="opt-toggle" id="chal-opt-reveal-attacked" onclick="toggleChallengeOpt('reveal_attacked')">Reveal Attacked</button>
+        <button class="opt-toggle" id="chal-opt-time-limit" onclick="toggleChallengeTimeLimit()">Time Limit</button>
+        <button class="opt-toggle" id="chal-opt-no-spectators" onclick="toggleChallengeOpt('no_spectators')">No Spectators</button>
+      </div>
+      <div id="chal-time-limit-slider" style="display:none;">
+        <input type="range" id="chal-tl-range" min="15" max="120" step="5" value="30" oninput="setChallengeTimeLimit(this.value)">
+        <div class="tl-label"><span id="chal-time-limit-value">30s</span> per turn</div>
+      </div>
+      <div style="opacity:0.4;font-size:0.8rem;text-transform:uppercase;letter-spacing:2px;margin-top:6px;">Challenge a player</div>
+      <select class="room-input" id="challenge-recent-select" style="width:auto;font-size:0.85rem;letter-spacing:normal;text-transform:none;padding:8px 12px;"
+        onchange="if(this.value){document.getElementById('challenge-username-input').value=this.value;hideChallengeSearchResults();}">
+        <option value="">Recently challenged…</option>
+      </select>
+      <div style="position:relative;">
+        <input class="room-input" id="challenge-username-input" placeholder="Type at least 3 letters of a username…" autocomplete="off"
+          style="text-transform:none;letter-spacing:normal;font-size:1rem;width:100%;"
+          onkeydown="if(event.key==='Enter')sendChallenge()" oninput="onChallengeSearchInput(this.value)">
+        <div id="challenge-search-results"></div>
+      </div>
+      <button class="btn btn-gold" style="padding:10px;font-size:0.9rem;" onclick="sendChallenge()">Send Challenge</button>
+      <div class="room-error" id="challenge-error"></div>
+      <div id="challenge-sent-msg" style="opacity:0.9;font-size:0.85rem;color:#81c784;display:none;"></div>
+    </div>
+    <button class="btn btn-secondary btn-sm" onclick="showFriendsModeScreen()">Back</button>
+  </div>
+</div>
+
+<!-- ============ SPECTATE ============ -->
+<div id="spectate-screen" class="room-screen">
+  <div class="room-box" style="max-width:480px;width:94vw;">
+    <h2>Spectate</h2>
+    <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:20px;">
+      <div style="opacity:0.4;font-size:0.75rem;text-transform:uppercase;letter-spacing:2px;">Ongoing games</div>
+      <div id="spectate-games-list" class="stats-history" style="max-height:240px;"></div>
+      <div style="opacity:0.4;font-size:0.8rem;text-transform:uppercase;letter-spacing:2px;margin-top:6px;">or search for a player</div>
+      <div style="position:relative;">
+        <input class="room-input" id="spectate-username-input" placeholder="Type at least 3 letters of a username…" autocomplete="off"
+          style="text-transform:none;letter-spacing:normal;font-size:1rem;width:100%;"
+          onkeydown="if(event.key==='Enter')spectateUserByName()" oninput="onSpectateSearchInput(this.value)">
+        <div id="spectate-search-results"></div>
+      </div>
+      <button class="btn btn-secondary" style="padding:10px;font-size:0.9rem;" onclick="spectateUserByName()">Spectate Player</button>
+      <div class="room-error" id="spectate-error"></div>
+    </div>
+    <button class="btn btn-secondary btn-sm" onclick="backToMenu()">Back</button>
+  </div>
+</div>
+
+<!-- ============ WAITING ============ -->
+<div id="waiting" class="room-screen">
+  <div class="room-box">
+    <h2>Waiting for Opponent</h2>
+    <p style="opacity:0.6;font-size:0.9rem;margin-bottom:12px;">Share this code with your friend:</p>
+    <div class="room-code-display" id="room-code-display">----</div>
+    <div style="margin-top:12px;"><span class="spinner"></span></div>
+    <button class="btn btn-secondary btn-sm" style="margin-top:18px;" onclick="location.reload()">Cancel</button>
+  </div>
+</div>
+
+<!-- ============ TOP RIGHT ============ -->
+<button id="challenge-bell" onclick="toggleChallengeDropdown()" style="display:none;">🔔<span id="challenge-badge" style="display:none;">0</span></button>
+<div id="challenge-dropdown">
+  <div style="font-weight:700;font-size:0.85rem;margin-bottom:8px;opacity:0.8;">Challenges</div>
+  <div id="challenge-list"></div>
+</div>
+<button id="ingame-help" onclick="showHelp()">?</button>
+<button id="settings-btn" onclick="toggleSettings()">⚙</button>
+<div id="settings-panel">
+  <h3>Settings</h3>
+  <label for="vol-slider">Volume</label>
+  <input type="range" id="vol-slider" min="0" max="100" value="50" oninput="setVolume(this.value)">
+  <span class="vol-value" id="vol-display">50%</span>
+</div>
+
+<!-- ============ SAMPLE GAME ============ -->
+<div id="walkthrough-overlay">
+  <div class="wt-top-bar">
+    <h2>SAMPLE GAME</h2>
+    <button class="wt-close" onclick="closeWalkthrough()">Close ✕</button>
+  </div>
+  <div class="wt-progress"><div class="wt-progress-bar" id="wt-progress-bar" style="width:0%"></div></div>
+  <div class="wt-game">
+    <div id="status-bar" class="wt-status-bar">
+      <span class="turn-indicator" id="wt-turn-text">—</span>
+      <span><span class="badge" id="wt-phase-badge">—</span> <span class="badge" id="wt-actions-badge"></span></span>
+    </div>
+    <div class="section">
+      <div class="section-label">Opponent's hand (<span id="wt-opp-hand-count">0</span>)</div>
+      <div class="hand-row" id="wt-opp-hand"></div>
+    </div>
+    <div class="section">
+      <div class="section-label">Opponent's board</div>
+      <div class="board-row" style="position:relative;">
+        <span class="board-side-label">LEFT</span>
+        <div id="wt-opp-board" style="display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:4px;flex:1;"></div>
+        <span class="board-side-label">RIGHT</span>
+      </div>
+    </div>
+    <div id="middle">
+      <div class="pile"><div class="card card-back" style="display:inline-flex;"></div><div class="pile-label">Deck (<span id="wt-deck-count">0</span>)</div></div>
+      <div class="pile"><div id="wt-discard-card"></div><div class="pile-label">Discard (<span id="wt-discard-count">0</span>)</div></div>
+    </div>
+    <div class="section">
+      <div class="section-label">Your board</div>
+      <div class="board-row" style="position:relative;">
+        <span class="board-side-label">LEFT</span>
+        <div id="wt-your-board" style="display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:4px;flex:1;"></div>
+        <span class="board-side-label">RIGHT</span>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-label">Your hand</div>
+      <div class="hand-row" id="wt-your-hand"></div>
+    </div>
+  </div>
+  <div class="wt-annotation" id="wt-annotation">Loading...</div>
+  <div class="wt-controls">
+    <button id="wt-prev-btn" onclick="walkthroughPrev()">◀ Back</button>
+    <button id="wt-pause-btn" onclick="walkthroughTogglePause()">⏸ Pause</button>
+    <button id="wt-next-btn" onclick="walkthroughNext()">Next ▶</button>
+  </div>
+</div>
+
+<div id="coinflip-overlay">
+  <div class="coin"><div class="coin-inner" id="coin-inner"><div class="coin-face front">♚</div><div class="coin-face back">♚</div></div></div>
+  <div id="coin-result"></div>
+</div>
+
+<!-- ============ HOW TO PLAY ============ -->
+<div id="help-overlay">
+  <div id="help-box">
+    <h2>HOW TO PLAY</h2>
+
+    <div class="help-section">
+      <h3>The Goal</h3>
+      <p>Royalty High is a card game for two. Build units on your side of the board, raid your opponent's side, and try to still have your Royals (J/Q/K) standing when the deck is used up. <strong>Whoever has the most Royal points on their board at the end wins.</strong></p>
+    </div>
+
+    <div class="help-section">
+      <h3>The Deck (54 cards)</h3>
+      <ul>
+        <li><strong>40 Knights</strong> — A and 2 to 10, four of each. There are no suits.</li>
+        <li><strong>12 Royals</strong> — each one is rolled on its own when the deck is built: roughly a third Jacks, a third Queens and a third Kings, with a <strong>0.7% chance of an Emperor</strong> (super rare, worth 4 points!). The mix is different every game.</li>
+        <li><strong>2 Jokers</strong> — wild.</li>
+      </ul>
+      <table class="help-table">
+        <tr><th>Card</th><th>Combat power</th><th>End-game points</th></tr>
+        <tr><td>2 – 10</td><td>Its number</td><td>0</td></tr>
+        <tr><td>Ace (A)</td><td>1 (and a trap — see below)</td><td>0</td></tr>
+        <tr><td>Jack (J)</td><td>None (Royal)</td><td>1</td></tr>
+        <tr><td>Queen (Q)</td><td>None (Royal)</td><td>2</td></tr>
+        <tr><td>King (K)</td><td>None (Royal)</td><td>3</td></tr>
+        <tr><td>Emperor (E) ⭐</td><td>None (Royal)</td><td>4 <em>(0.7% rare!)</em></td></tr>
+        <tr><td>Joker</td><td>Wild — see below</td><td>2, or matches the Royal it's with</td></tr>
+      </table>
+    </div>
+
+    <div class="help-section">
+      <h3>Setup &amp; Mulligan</h3>
+      <p>Both players start with 5 cards. Before play begins you can <strong>mulligan once</strong>: your hand is shuffled back into the deck and you draw a fresh 5. You don't draw on your very first turn.</p>
+    </div>
+
+    <div class="help-section">
+      <h3>Your Turn</h3>
+      <p>Every turn after your first begins with drawing a card. Then pick a path:</p>
+      <ul>
+        <li><strong>Path A (default):</strong> take 1 action.</li>
+        <li><strong>Discard 2, Put 2:</strong> throw away 2 cards from your hand and take 2 actions instead.</li>
+      </ul>
+      <p>Path B is for putting lots of units down at once. <strong>It's deploy-only — no attacking on a Path B turn.</strong></p>
+    </div>
+
+    <div class="help-section">
+      <h3>Actions</h3>
+      <ul>
+        <li><strong>Deploy:</strong> place cards face-down at the left or right end of your board. Same-rank cards played together become one <strong>unit</strong>. <em>Bonus:</em> while your board has fewer than 3 units, deploying is free — keep placing units until you hit 3 (or press "Done Deploying"), and only then is the action used up.</li>
+        <li><strong>Attack:</strong> throw same-rank cards from your hand at the left or right end of your opponent's board. <strong>Attacking ends your turn straight away, and you can't do it on a Path B turn.</strong></li>
+        <li><strong>Pass:</strong> give up your remaining action and end the turn.</li>
+      </ul>
+    </div>
+
+    <div class="help-section">
+      <h3>Units &amp; Power</h3>
+      <p>Same-rank cards combine into one unit and their power adds up: two 6s hit for 12, three 4s for 12. Royals can be stacked too, but they have no power — a Royal always takes out exactly one defender (see below).</p>
+    </div>
+
+    <div class="help-section">
+      <h3>Combat</h3>
+      <p>Your attacking unit meets the opponent's units one at a time, starting from the end you chose.</p>
+      <h4 style="font-size:0.9rem;color:#aed581;margin-top:8px;">Knight vs Knight</h4>
+      <ul>
+        <li>If you have <strong>more</strong> power, the defender dies and whatever power is left over keeps going into the next defender.</li>
+        <li>If you have <strong>less</strong> power, you're blocked: your unit dies and theirs lives.</li>
+        <li>If it's <strong>equal</strong>, both die.</li>
+      </ul>
+      <div class="example-demo" data-example="knight-wins"><div class="example-title">Example: Knight wins, then is blocked</div>
+        <div class="example-desc">Board: 5, 7, Q, 10. A <strong>7</strong> hits the left end — the 5 goes down with 2 power to spare, and 2 can't get past the next 7, so the attack stops there.</div>
+        <div class="demo-stage"><span class="demo-side-label demo-atk">Attacker</span><span class="demo-side-label demo-def">Defender's board</span></div>
+        <div class="demo-controls"><button class="demo-play-btn">▶ Play</button></div></div>
+      <div class="example-demo" data-example="carry-through"><div class="example-title">Example: Carrying through multiple defenders</div>
+        <div class="example-desc">Board: 7, 10, K, Ace. Two 9s (<strong>18</strong> power) go in from the left: the 7 falls (11 left), the 10 falls (1 left), then they reach the King and both sides die — any knight that runs into a Royal trades with it, however much power is left. The Ace is never touched.</div>
+        <div class="demo-stage"><span class="demo-side-label demo-atk">Attacker</span><span class="demo-side-label demo-def">Defender's board</span></div>
+        <div class="demo-controls"><button class="demo-play-btn">▶ Play</button></div></div>
+      <div class="example-demo" data-example="knight-blocked"><div class="example-title">Example: Knight blocked</div>
+        <div class="example-desc">Board: 8, Q, 3. A <strong>5</strong> hits the left end — it can't beat the 8, so the 5 dies and nothing else happens.</div>
+        <div class="demo-stage"><span class="demo-side-label demo-atk">Attacker</span><span class="demo-side-label demo-def">Defender's board</span></div>
+        <div class="demo-controls"><button class="demo-play-btn">▶ Play</button></div></div>
+      <div class="example-demo" data-example="mutual"><div class="example-title">Example: Mutual destruction</div>
+        <div class="example-desc">Board: 7, K, 4. A <strong>7</strong> meets a 7 — same power, so both are destroyed.</div>
+        <div class="demo-stage"><span class="demo-side-label demo-atk">Attacker</span><span class="demo-side-label demo-def">Defender's board</span></div>
+        <div class="demo-controls"><button class="demo-play-btn">▶ Play</button></div></div>
+
+      <h4 style="font-size:0.9rem;color:#aed581;margin-top:14px;">Royal attackers</h4>
+      <p>A Royal (J/Q/K) ignores power: it removes exactly <strong>one</strong> defender — whatever it is — and dies too. Perfect for deleting something scary.</p>
+      <div class="example-demo" data-example="royal-single"><div class="example-title">Example: Royal attack on a single knight</div>
+        <div class="example-desc">Board: 9, 6, J. A <strong>King</strong> hits the left end — the 9 is gone and so is the King. The 6 and J are fine.</div>
+        <div class="demo-stage"><span class="demo-side-label demo-atk">Attacker</span><span class="demo-side-label demo-def">Defender's board</span></div>
+        <div class="demo-controls"><button class="demo-play-btn">▶ Play</button></div></div>
+      <div class="example-demo" data-example="royal-stack"><div class="example-title">Example: Royal attack on a stacked unit</div>
+        <div class="example-desc">Board: <strong>8+8</strong> (one unit, 16 power), 6, J. A <strong>King</strong> hits the left end and wipes out the whole 8+8 unit — both cards — then dies. That's why Royals are great against big stacks.</div>
+        <div class="demo-stage"><span class="demo-side-label demo-atk">Attacker</span><span class="demo-side-label demo-def">Defender's board</span></div>
+        <div class="demo-controls"><button class="demo-play-btn">▶ Play</button></div></div>
+
+      <h4 style="font-size:0.9rem;color:#aed581;margin-top:14px;">Attacking a Royal defender</h4>
+      <p>Royals are deadly on defense. <strong>Anything</strong> that hits one — knight or Royal — dies along with it.</p>
+      <div class="example-demo" data-example="knight-hits-royal"><div class="example-title">Example: Knight hits a Royal</div>
+        <div class="example-desc">Board: Q, 5, 3. A <strong>10</strong> hits the left end, runs into the Queen, and both are destroyed. The 10 can't get past.</div>
+        <div class="demo-stage"><span class="demo-side-label demo-atk">Attacker</span><span class="demo-side-label demo-def">Defender's board</span></div>
+        <div class="demo-controls"><button class="demo-play-btn">▶ Play</button></div></div>
+    </div>
+
+    <div class="help-section">
+      <h3>The Ace Trap (very important!)</h3>
+      <p>On defense an Ace looks harmless (power 1), but it's a <strong>trap</strong>. Whatever attacks it — knight or Royal — gets <strong>captured</strong>: instead of dying, your attacking cards switch sides and become a unit on your <strong>opponent's board</strong>, right where the Ace was. The Ace itself is used up.</p>
+      <p><strong>So attacking an Ace is usually a disaster</strong> — you lose the unit and your opponent gets it. Be extra careful with Royals: you'd be handing over points.</p>
+      <div class="example-demo" data-example="ace-trap-knight"><div class="example-title">Example: Ace traps a Knight</div>
+        <div class="example-desc">Board: Ace, K, 4. An <strong>8</strong> hits the left end — the Ace springs and the 8 now sits on the defender's board where the Ace was.</div>
+        <div class="demo-stage"><span class="demo-side-label demo-atk">Attacker</span><span class="demo-side-label demo-def">Defender's board</span></div>
+        <div class="demo-controls"><button class="demo-play-btn">▶ Play</button></div></div>
+      <div class="example-demo" data-example="ace-trap-royal"><div class="example-title">Example: Ace traps a King</div>
+        <div class="example-desc">Board: Ace, Q, 6. A <strong>King</strong> hits the left end — the Ace is spent, and now the King scores 3 points for the defender!</div>
+        <div class="demo-stage"><span class="demo-side-label demo-atk">Attacker</span><span class="demo-side-label demo-def">Defender's board</span></div>
+        <div class="demo-controls"><button class="demo-play-btn">▶ Play</button></div></div>
+      <p>Two Aces in one unit still only spring once, and both are used up.</p>
+    </div>
+
+    <div class="help-section">
+      <h3>Jokers (Wild Cards)</h3>
+      <p>There are 2 Jokers. A Joker can join <strong>any</strong> group you deploy or attack with and counts as that rank.</p>
+      <ul>
+        <li><strong>Joker alone:</strong> fights like a Royal (removes one defender) and scores <strong>2 points</strong> at the end.</li>
+        <li><strong>Joker + Knight:</strong> copies the knight's number and still scores 2 at the end. Joker + 7 = 14 power, 2 points. Joker + 7 + 7 = 21 power, 2 points.</li>
+        <li><strong>Joker + Royal:</strong> becomes another copy of that Royal, for fighting and scoring. Joker + King = King + King (6 points). Joker + Emperor = 8 points.</li>
+      </ul>
+    </div>
+
+    <div class="help-section">
+      <h3>Hand Limit</h3>
+      <p>You can hold at most <strong>10 cards</strong>. If you're over 10 when your turn ends, you discard down to 10.</p>
+    </div>
+
+    <div class="help-section">
+      <h3>End of Game</h3>
+      <p>When the deck is empty, the <strong>Forced Attack</strong> phase begins. Each turn you must either attack or press <strong>Pass &amp; Discard All</strong> to throw away your whole hand. Once neither player has any cards in hand, the game ends.</p>
+      <p>Every unit is flipped over, and the <strong>Royals and Jokers</strong> still on your board score:</p>
+      <table class="help-table">
+        <tr><th>Card on board</th><th>Points</th></tr>
+        <tr><td>Jack</td><td>1</td></tr>
+        <tr><td>Queen</td><td>2</td></tr>
+        <tr><td>King</td><td>3</td></tr>
+        <tr><td>Emperor ⭐</td><td>4 <em>(rare!)</em></td></tr>
+        <tr><td>Joker</td><td>2 alone or with a knight; matches the Royal it's with (Jack 1, Queen 2, King 3, Emperor 4)</td></tr>
+      </table>
+      <p style="margin-top:8px;">Most points wins. Ties can happen.</p>
+      <div class="score-demo" data-scenario="s1"><div class="example-title">Scoring example 1</div><div class="score-board"></div><div class="score-calc"></div></div>
+      <div class="score-demo" data-scenario="s2"><div class="example-title">Scoring example 2</div><div class="score-board"></div><div class="score-calc"></div></div>
+    </div>
+
+    <div class="help-section">
+      <h3>See it in action</h3>
+      <p>Watch a short scripted game that puts all the rules together.</p>
+      <div style="text-align:center;margin-top:8px;"><button class="btn btn-gold" onclick="openWalkthrough()">▶ Play sample game</button></div>
+    </div>
+
+    <div class="help-close"><button class="btn btn-primary" onclick="hideHelp()">Got it</button></div>
+  </div>
+</div>
+
+<!-- ============ GAME ============ -->
+<div id="game">
+  <div id="status-bar">
+    <span class="turn-indicator" id="turn-text"></span>
+    <span id="turn-timer"></span>
+    <span class="mode-badges" id="mode-badges"></span>
+    <span><span class="badge" id="phase-badge"></span> <span class="badge" id="actions-badge"></span></span>
+  </div>
+  <div id="paused-banner" style="display:none;">
+    <span id="paused-banner-text"></span><span class="spinner"></span>
+  </div>
+  <div class="section"><div class="section-label">Opponent's hand (<span id="opp-hand-count">0</span>)</div><div class="hand-row" id="opp-hand"></div></div>
+  <div class="section"><div class="section-label">Opponent's board</div>
+    <div class="board-row" id="opp-board-row" style="position:relative;"><span class="board-side-label">LEFT</span><div id="opp-board" style="display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:4px;flex:1;"></div><span class="board-side-label">RIGHT</span>
+      <div class="drop-zone drop-zone-left drop-zone-attack" id="dz-atk-left">Attack Left</div>
+      <div class="drop-zone drop-zone-right drop-zone-attack" id="dz-atk-right">Attack Right</div>
+    </div>
+  </div>
+  <div id="middle">
+    <div class="pile"><div class="card card-back" id="deck-card" style="display:inline-flex;"></div><div class="pile-label">Deck (<span id="deck-count">0</span>)</div></div>
+    <div class="pile"><div id="discard-card"></div><div class="pile-label">Discard (<span id="discard-count">0</span>)</div></div>
+  </div>
+  <div class="section"><div class="section-label">Your board</div>
+    <div class="board-row" id="your-board-row" style="position:relative;"><span class="board-side-label">LEFT</span><div id="your-board" style="display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:4px;flex:1;"></div><span class="board-side-label">RIGHT</span>
+      <div class="drop-zone drop-zone-left drop-zone-deploy" id="dz-dep-left">Deploy Left</div>
+      <div class="drop-zone drop-zone-right drop-zone-deploy" id="dz-dep-right">Deploy Right</div>
+    </div>
+  </div>
+  <div class="section"><div class="section-label">Your hand</div><div class="hand-row" id="your-hand"></div></div>
+  <div id="actions"></div>
+  <div id="event-log"></div>
+</div>
+
+<div id="emote-wrap">
+  <div id="emote-menu">
+    <button class="emote-opt emoji" onclick="sendEmote('laugh')" aria-label="Laugh">😂</button>
+    <button class="emote-opt emoji" onclick="sendEmote('angry')" aria-label="Angry">😡</button>
+    <button class="emote-opt emoji" onclick="sendEmote('think')" aria-label="Thinking">🤔</button>
+    <button class="emote-opt text thanks" onclick="sendEmote('thanks')">Thank you</button>
+    <button class="emote-opt text toast" onclick="sendEmote('toast')">TOAST</button>
+    <button class="emote-opt text sketch" onclick="sendEmote('sketch')">SKETCH</button>
+  </div>
+  <button id="emote-btn" onclick="toggleEmoteMenu()" aria-label="Emotes">💬</button>
+</div>
+
+<div id="spectator-wrap">
+  <div id="spectator-panel"><div class="sp-title">Spectating</div><div id="spectator-list"></div></div>
+  <button id="spectator-btn" onclick="toggleSpectatorPanel()" aria-label="Spectators">👁<span id="spectator-count" style="display:none;"></span></button>
+</div>
+
+<div id="mulligan-overlay">
+  <div id="mulligan-box">
+    <h2>Your starting hand</h2>
+    <div id="mulligan-hand"></div>
+    <p style="opacity:0.7;margin-bottom:16px;font-size:0.9rem;">You may mulligan once to get 5 new cards.</p>
+    <div id="mulligan-buttons">
+      <button class="btn btn-primary" onclick="doMulligan(false)">Keep Hand</button>
+      <button class="btn btn-gold" onclick="doMulligan(true)">Mulligan</button>
+    </div>
+    <div id="mulligan-wait" style="display:none;margin-top:12px;opacity:0.6;">Waiting for opponent<span class="spinner"></span></div>
+  </div>
+</div>
+
+<div id="gameover-overlay">
+  <div id="gameover-box">
+    <h2 id="go-title"></h2>
+    <div class="go-board-section"><h3>Your board</h3><div class="go-units" id="go-your-board"></div><div class="go-score-total" id="go-your-score"></div></div>
+    <div class="go-board-section"><h3>Opponent's board</h3><div class="go-units" id="go-opp-board"></div><div class="go-score-total" id="go-opp-score"></div></div>
+    <button class="btn btn-primary" style="margin-top:20px;" onclick="location.reload()">Play Again</button>
+  </div>
+</div>
+
+<!-- ============ MODALS ============ -->
+<div id="auth-overlay" class="modal-overlay">
+  <div class="modal-box">
+    <h2 id="auth-title">Log in</h2>
+    <input id="auth-username" class="auth-input" placeholder="Username" autocomplete="username" maxlength="20">
+    <!-- Shown so the form looks the same, but its value is never read or sent anywhere. -->
+    <input id="auth-password" type="password" class="auth-input" placeholder="Password" autocomplete="current-password" onkeydown="if(event.key==='Enter')submitAuth()">
+    <div id="auth-error" class="auth-error"></div>
+    <button class="btn btn-primary" style="width:100%;" onclick="submitAuth()"><span id="auth-submit-label">Log in</span></button>
+    <div class="auth-toggle"><span id="auth-toggle-text">No account?</span> <button class="btn-link" id="auth-toggle-btn" onclick="toggleAuthMode()">Sign up</button></div>
+    <button class="btn-link auth-cancel" onclick="closeAuth()">Cancel</button>
+  </div>
+</div>
+
+<div id="user-settings-overlay" class="modal-overlay">
+  <div class="modal-box">
+    <h2>Settings</h2>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin:8px 0 4px;">
+      <span style="text-align:left;font-size:0.9rem;">Reveal attacked by default<div style="opacity:0.5;font-size:0.72rem;margin-top:2px;">Pre-selects "Reveal Attacked" in rooms you create.</div></span>
+      <button class="opt-toggle" id="set-reveal-attacked" onclick="toggleUserReveal()">Off</button>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin:8px 0 4px;">
+      <span style="text-align:left;font-size:0.9rem;">Time limit by default<div style="opacity:0.5;font-size:0.72rem;margin-top:2px;">Pre-sets a per-turn time limit in rooms you create.</div></span>
+      <button class="opt-toggle" id="set-time-limit" onclick="toggleUserTimeLimit()">Off</button>
+    </div>
+    <div id="set-time-limit-slider" style="display:none;margin:0 0 8px;">
+      <input type="range" id="set-tl-range" min="15" max="120" step="5" value="30" oninput="setUserTimeLimit(this.value)" onchange="commitUserTimeLimit(this.value)">
+      <div class="tl-label"><span id="set-time-limit-value">30s</span> per turn</div>
+    </div>
+    <div id="user-settings-error" class="auth-error"></div>
+    <button class="btn-link auth-cancel" onclick="closeUserSettings()">Close</button>
+  </div>
+</div>
+
+<!-- The prank panel. Secret: tap the "Create / Join Room" or "Direct Challenge" title 5 times.
+     Settings apply to the next game you create, join or challenge from this tab, then reset. -->
+<div id="prank-panel" class="modal-overlay">
+  <div class="modal-box" style="width:360px;">
+    <h2>👑 Prank mode</h2>
+    <div class="prank-row"><span>Prank mode</span><button class="opt-toggle" id="prank-enabled" style="flex:0 0 auto;min-width:56px;" onclick="togglePrankEnabled()">Off</button></div>
+    <div class="prank-slider">
+      <div class="prank-row" style="margin-bottom:2px;"><span>Their attacks fall short</span><span class="prank-val" id="prank-fail-label"></span></div>
+      <input type="range" id="prank-fail" min="0" max="9" step="1" oninput="renderPrankLabels()">
+    </div>
+    <div class="prank-slider">
+      <div class="prank-row" style="margin-bottom:2px;"><span>Win by at the end</span><span class="prank-val" id="prank-margin-label"></span></div>
+      <input type="range" id="prank-margin" min="0" max="8" step="1" oninput="renderPrankLabels()">
+    </div>
+    <div class="prank-slider">
+      <div class="prank-row" style="margin-bottom:2px;"><span>Most Royals they can draw<div style="opacity:0.5;font-size:0.7rem;">All game, Jokers included</div></span><span class="prank-val" id="prank-cap-label"></span></div>
+      <input type="range" id="prank-cap" min="0" max="15" step="1" oninput="renderPrankLabels()">
+    </div>
+    <div style="opacity:0.5;font-size:0.72rem;text-align:left;line-height:1.45;">
+      Applies to the next game you create, join or challenge from this tab, then switches itself off. Your opponent's attacks run into
+      whatever hidden card stops them best — always something they haven't seen and that's still possible. At the end, as few of
+      your hidden cards as possible turn into Royals (Kings before Emperors) to win by the margin above. If even that couldn't win,
+      your real cards are shown so you can try again. Rigged games are recorded in stats like any other game.
+    </div>
+    <div style="border-top:1px solid rgba(255,255,255,0.12);margin-top:12px;padding-top:10px;text-align:left;">
+      <div style="font-size:0.85rem;font-weight:600;">Head-to-head records</div>
+      <div style="opacity:0.5;font-size:0.72rem;margin:2px 0 8px;">The real site tints the in-game background by your record against that opponent. Enter your real record vs a friend so it looks the same here.</div>
+      <div style="display:flex;gap:6px;align-items:center;">
+        <input class="auth-input" id="h2h-user" placeholder="Username" style="margin:0;flex:2;">
+        <input class="auth-input" id="h2h-w" placeholder="W" style="margin:0;flex:1;text-align:center;">
+        <input class="auth-input" id="h2h-l" placeholder="L" style="margin:0;flex:1;text-align:center;">
+        <input class="auth-input" id="h2h-t" placeholder="T" style="margin:0;flex:1;text-align:center;">
+      </div>
+      <button class="btn btn-secondary btn-sm" style="margin-top:8px;" onclick="saveH2H()">Save record</button>
+      <div id="h2h-list" style="font-size:0.75rem;opacity:0.75;margin-top:6px;"></div>
+    </div>
+    <div id="prank-status"></div>
+    <button class="btn btn-primary" style="width:100%;margin-top:10px;" onclick="savePrank()">Save</button>
+    <div style="opacity:0.45;font-size:0.68rem;margin-top:6px;">Head-to-head records need you to be logged in.</div>
+    <button class="btn-link auth-cancel" onclick="closePrank()">Close</button>
+  </div>
+</div>
+
+<!-- ============ STATS ============ -->
+<div id="stats-screen" class="room-screen">
+  <div class="room-box" style="max-width:660px;width:94vw;">
+    <div class="stats-player-picker"><label for="stats-player-select">View:</label><select id="stats-player-select" onchange="loadStatsView(this.value)"></select></div>
+    <h2 style="margin-bottom:4px;">♛ <span id="stats-name"></span></h2>
+    <div class="stats-period">
+      <button id="stats-period-all" class="active" onclick="setStatsPeriod('all')">All time</button>
+      <button id="stats-period-month" onclick="setStatsPeriod('monthly')">This month</button>
+    </div>
+    <div id="stats-winrate"></div>
+    <div id="stats-summary" class="stats-summary"></div>
+    <h3 style="margin:14px 0 6px;opacity:0.7;font-size:0.9rem;letter-spacing:1px;text-transform:uppercase;">Recent games</h3>
+    <div id="stats-history" class="stats-history"></div>
+    <button class="btn btn-secondary btn-sm" style="margin-top:16px;" onclick="backToMenu()">Back</button>
+  </div>
+</div>
+
+<!-- ============ ADMIN ============ -->
+<div id="admin-screen" class="room-screen">
+  <div class="room-box" style="max-width:520px;width:94vw;">
+    <h2 style="margin-bottom:4px;">Admin</h2>
+    <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
+      <button class="opt-toggle active" id="admin-tab-players" onclick="showAdminTab('players')">Players</button>
+      <button class="opt-toggle" id="admin-tab-games" onclick="showAdminTab('games')">Recent Games</button>
+      <button class="opt-toggle" id="admin-tab-log" onclick="showAdminTab('log')">Log Game</button>
+    </div>
+    <div id="admin-list" class="stats-history" style="margin-top:10px;"></div>
+    <div id="admin-games-list" class="stats-history" style="margin-top:10px;display:none;"></div>
+    <div id="admin-log-panel" style="margin-top:14px;display:none;text-align:left;">
+      <div style="opacity:0.6;font-size:0.72rem;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:4px;">Player 1</div>
+      <div style="position:relative;">
+        <input class="room-input" id="log-p1-input" placeholder="Type at least 3 letters…" autocomplete="off" style="text-transform:none;letter-spacing:normal;font-size:0.95rem;width:100%;" oninput="onAdminLogSearchInput(this.value,1)">
+        <div id="log-p1-results"></div>
+      </div>
+      <div style="opacity:0.6;font-size:0.72rem;text-transform:uppercase;letter-spacing:1.5px;margin:12px 0 4px;">Player 2</div>
+      <div style="position:relative;">
+        <input class="room-input" id="log-p2-input" placeholder="Type at least 3 letters…" autocomplete="off" style="text-transform:none;letter-spacing:normal;font-size:0.95rem;width:100%;" oninput="onAdminLogSearchInput(this.value,2)">
+        <div id="log-p2-results"></div>
+      </div>
+      <div style="opacity:0.6;font-size:0.72rem;text-transform:uppercase;letter-spacing:1.5px;margin:14px 0 6px;">Result</div>
+      <div class="game-options">
+        <button class="opt-toggle" id="log-result-p1" onclick="setAdminLogResult('p1')">Player 1 Won</button>
+        <button class="opt-toggle" id="log-result-tie" onclick="setAdminLogResult('tie')">Tie</button>
+        <button class="opt-toggle" id="log-result-p2" onclick="setAdminLogResult('p2')">Player 2 Won</button>
+      </div>
+      <button class="btn btn-gold" style="margin-top:14px;padding:10px;font-size:0.9rem;width:100%;" onclick="submitAdminLogGame()">Log Game</button>
+      <div class="room-error" id="admin-log-error" style="margin-top:8px;"></div>
+    </div>
+    <button class="btn btn-secondary btn-sm" style="margin-top:16px;" onclick="backToMenu()">Back</button>
+  </div>
+</div>
+
+<!-- ============ LEADERBOARD ============ -->
+<div id="leaderboard-screen" class="room-screen">
+  <div class="room-box" style="max-width:520px;width:94vw;">
+    <h2 style="margin-bottom:4px;">Leaderboard</h2>
+    <div class="game-options" style="margin-top:10px;">
+      <button class="opt-toggle active" id="lb-tab-all" onclick="setLeaderboardPeriod('all')">All-Time</button>
+      <button class="opt-toggle" id="lb-tab-monthly" onclick="setLeaderboardPeriod('monthly')">This Month</button>
+    </div>
+    <div style="opacity:0.4;font-size:0.7rem;margin-top:6px;" id="lb-caption">Ranked by win rate — requires 15+ games played</div>
+    <div id="lb-winrate-list" class="stats-history" style="margin-top:10px;"></div>
+    <button class="btn btn-secondary btn-sm" style="margin-top:16px;" onclick="backToMenu()">Back</button>
+  </div>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
